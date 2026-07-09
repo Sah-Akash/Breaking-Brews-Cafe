@@ -477,7 +477,7 @@ export default function AdminDashboard({ token, onLogout, onRefreshMenu }: Admin
   // Render QR Code
   useEffect(() => {
     if (activeTab === 'qrcode' && qrCanvasRef.current) {
-      const targetUrl = window.location.origin; // Points to current hosted app address
+      const targetUrl = 'https://breaking-brews-cafe.vercel.app/'; // Points to production digital menu
       QRCode.toCanvas(qrCanvasRef.current, targetUrl, {
         width: 256,
         margin: 2,
@@ -1269,7 +1269,7 @@ export default function AdminDashboard({ token, onLogout, onRefreshMenu }: Admin
             </div>
 
             <p className="text-[10px] text-stone-500 font-medium break-all bg-stone-50 px-3 py-1.5 rounded-xl border border-stone-150 mb-6">
-              🔗 Destination: <span className="font-bold text-amber-900">{window.location.origin}</span>
+              🔗 Destination: <span className="font-bold text-amber-900">https://breaking-brews-cafe.vercel.app/</span>
             </p>
 
             {qrDownloadUrl && (
