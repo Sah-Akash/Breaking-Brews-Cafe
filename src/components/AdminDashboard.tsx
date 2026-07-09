@@ -9,7 +9,7 @@ import QRCode from 'qrcode';
 import { 
   Plus, Edit2, Trash2, Copy, Eye, EyeOff, Sparkles, Settings, ArrowRightLeft, 
   QrCode, LogOut, ChevronRight, Check, AlertCircle, RefreshCw, Upload, 
-  Tag, Compass, Image as ImageIcon, Flame, DollarSign, ListFilter, Trash, CheckSquare, Square, Download
+  Tag, Compass, Image as ImageIcon, Flame, DollarSign, ListFilter, Trash, CheckSquare, Square, Download, FileText
 } from 'lucide-react';
 import { RestaurantSettings, Category, MenuItem, ExtractedCategory, AIExtractionResponse } from '../types.js';
 
@@ -968,19 +968,30 @@ export default function AdminDashboard({ token, onLogout, onRefreshMenu }: Admin
               <div className="border-2 border-dashed border-stone-200 rounded-2xl p-8 text-center bg-stone-50 hover:bg-stone-50/50 transition-all flex flex-col items-center justify-center relative overflow-hidden">
                 <input 
                   type="file" 
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   onChange={handleOcrFileChange}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   disabled={isOcrExtracting}
                 />
                 
                 {ocrPreview ? (
-                  <div className="space-y-4 max-w-sm">
-                    <img src={ocrPreview} alt="Uploaded menu preview" className="max-h-48 rounded-xl object-contain mx-auto shadow-sm border border-stone-200" referrerPolicy="no-referrer" />
-                    <p className="text-xs font-bold text-stone-600 truncate">{ocrFile?.name}</p>
+                  <div className="space-y-4 max-w-sm flex flex-col items-center">
+                    {(ocrFile?.type === 'application/pdf' || ocrFile?.name.toLowerCase().endsWith('.pdf')) ? (
+                      <div className="w-16 h-16 bg-red-50 border border-red-100 rounded-2xl flex items-center justify-center text-red-600 shadow-sm">
+                        <FileText className="w-8 h-8" />
+                      </div>
+                    ) : (
+                      <img src={ocrPreview} alt="Uploaded menu preview" className="max-h-48 rounded-xl object-contain mx-auto shadow-sm border border-stone-200" referrerPolicy="no-referrer" />
+                    )}
+                    <div>
+                      <p className="text-xs font-bold text-stone-600 truncate max-w-[220px]">{ocrFile?.name}</p>
+                      {(ocrFile?.type === 'application/pdf' || ocrFile?.name.toLowerCase().endsWith('.pdf')) && (
+                        <p className="text-[10px] text-stone-400 mt-0.5">PDF Menu Document</p>
+                      )}
+                    </div>
                     <button 
                       onClick={() => { setOcrPreview(''); setOcrFile(null); }}
-                      className="px-3 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full text-[10px] font-bold"
+                      className="px-3 py-1 bg-red-50 text-red-600 border border-red-100 rounded-full text-[10px] font-bold cursor-pointer"
                     >
                       Remove File
                     </button>
@@ -988,8 +999,8 @@ export default function AdminDashboard({ token, onLogout, onRefreshMenu }: Admin
                 ) : (
                   <>
                     <Upload className="w-10 h-10 text-stone-400 mb-3" />
-                    <p className="text-sm font-bold text-stone-700">Drag & Drop your menu photo here</p>
-                    <p className="text-xs text-stone-400 mt-1">Supports JPG, PNG, WEBP menu files.</p>
+                    <p className="text-sm font-bold text-stone-700">Drag & Drop your menu file here</p>
+                    <p className="text-xs text-stone-400 mt-1">Supports JPG, PNG, WEBP, or PDF files.</p>
                     <span className="mt-4 px-4 py-2 bg-white border border-stone-200 rounded-xl text-xs font-bold shadow-sm hover:bg-stone-100 transition-all">Browse Files</span>
                   </>
                 )}
