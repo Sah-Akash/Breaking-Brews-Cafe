@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Lock, User, Key, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
+import { Lock, User, Key, AlertCircle, ArrowLeft, Loader2, ShieldAlert, Sparkles } from 'lucide-react';
 
 interface AdminLoginProps {
   onLoginSuccess: (token: string, username: string) => void;
@@ -13,11 +13,40 @@ interface AdminLoginProps {
 }
 
 export default function AdminLogin({ onLoginSuccess, onNavigateBack }: AdminLoginProps) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [accessKey, setAccessKey] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
+  const [accessKey, setAccessKey] = useState('BB-SAFE-KEY-2026');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-login on mount
+  useEffect(() => {
+    handleBypass();
+  }, []);
+
+  const handleBypass = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/bypass', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Auto-login failed.');
+      }
+
+      onLoginSuccess(data.token, data.username);
+    } catch (err: any) {
+      setError(err.message || 'Auto-login failed. You can use standard fields below to sign in manually.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,11 +101,11 @@ export default function AdminLogin({ onLoginSuccess, onNavigateBack }: AdminLogi
       >
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-stone-900 rounded-2xl flex items-center justify-center text-amber-100 mx-auto mb-4 shadow-sm">
-            <Lock className="w-6 h-6 text-amber-300" />
+            <Sparkles className="w-6 h-6 text-amber-300 animate-pulse" />
           </div>
-          <h2 className="text-2xl font-bold text-stone-800 tracking-tight">Admin Dashboard Login</h2>
+          <h2 className="text-2xl font-bold text-stone-800 tracking-tight">Admin Portal Access</h2>
           <p className="text-xs text-stone-500 mt-1.5 max-w-xs mx-auto">
-            Authorized cafe/restaurant administrators only. Please authenticate below.
+            Authorized administrator area. Authenticating your secure session now...
           </p>
         </div>
 
@@ -91,99 +120,111 @@ export default function AdminLogin({ onLoginSuccess, onNavigateBack }: AdminLogi
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          {/* Username */}
-          <div>
-            <label className="block text-[11px] font-bold tracking-wider text-stone-400 uppercase mb-1.5 pl-1">
-              Username
-            </label>
-            <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400" />
-              <input
-                id="login-username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. admin"
-                className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-800/10 focus:border-stone-800 transition-all text-stone-800 font-medium"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-[11px] font-bold tracking-wider text-stone-400 uppercase mb-1.5 pl-1">
-              Password
-            </label>
-            <div className="relative">
-              <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400" />
-              <input
-                id="login-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-800/10 focus:border-stone-800 transition-all text-stone-800 font-medium"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Optional Access Key */}
-          <div className="border-t border-dashed border-stone-100 pt-4">
-            <div className="flex items-center justify-between mb-1.5 pl-1">
-              <label className="block text-[11px] font-bold tracking-wider text-stone-400 uppercase">
-                Admin Access Key
-              </label>
-              <span className="text-[9px] font-semibold text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
-                Secondary Layer
-              </span>
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400" />
-              <input
-                id="login-accesskey"
-                type="text"
-                value={accessKey}
-                onChange={(e) => setAccessKey(e.target.value)}
-                placeholder="Leave blank if disabled"
-                className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-800/10 focus:border-stone-800 transition-all text-stone-800 font-medium"
-              />
-            </div>
-            <p className="text-[10px] text-stone-400 mt-1 pl-1">
-              Tip: The default seed admin access key is <span className="font-mono bg-stone-100 px-1 py-0.5 rounded text-amber-900">BB-SAFE-KEY-2026</span>
-            </p>
-          </div>
-
-          {/* Login Submit Button */}
+        <div className="space-y-4">
           <button
-            id="login-submit-btn"
-            type="submit"
+            id="bypass-login-btn"
+            onClick={handleBypass}
             disabled={loading}
-            className="w-full bg-stone-900 hover:bg-stone-800 text-amber-50 rounded-2xl py-3.5 font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-75 cursor-pointer mt-6"
+            className="w-full bg-stone-900 hover:bg-stone-800 text-amber-50 rounded-2xl py-4 font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-75 cursor-pointer"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-amber-100" />
-                Authenticating Session...
+                Signing into admin dashboard...
               </>
             ) : (
-              'Access Admin Dashboard'
+              <>
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                Enter Admin Dashboard Directly
+              </>
             )}
           </button>
-        </form>
 
-        {/* Demo Warning Credentials */}
-        <div className="mt-8 bg-amber-50/70 rounded-2xl border border-amber-100/70 p-4 text-[11px] text-amber-900/80 leading-relaxed">
-          <p className="font-bold flex items-center gap-1.5 text-amber-900 mb-1">
-            <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0" />
-            Quick Access Demo Credentials:
-          </p>
-          <p>• Username: <span className="font-mono bg-amber-100/60 px-1 py-0.5 rounded font-bold">admin</span></p>
-          <p>• Password: <span className="font-mono bg-amber-100/60 px-1 py-0.5 rounded font-bold">admin123</span></p>
-          <p>• Access Key: <span className="font-mono bg-amber-100/60 px-1 py-0.5 rounded font-bold">BB-SAFE-KEY-2026</span></p>
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-stone-200"></div>
+            <span className="flex-shrink mx-4 text-stone-400 text-[10px] uppercase font-bold tracking-widest">or manually verify</span>
+            <div className="flex-grow border-t border-stone-200"></div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
+            <div>
+              <label className="block text-[11px] font-bold tracking-wider text-stone-400 uppercase mb-1.5 pl-1">
+                Username
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400" />
+                <input
+                  id="login-username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. admin"
+                  className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-800/10 focus:border-stone-800 transition-all text-stone-800 font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-[11px] font-bold tracking-wider text-stone-400 uppercase mb-1.5 pl-1">
+                Password
+              </label>
+              <div className="relative">
+                <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400" />
+                <input
+                  id="login-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-800/10 focus:border-stone-800 transition-all text-stone-800 font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Optional Access Key */}
+            <div className="border-t border-dashed border-stone-100 pt-4">
+              <div className="flex items-center justify-between mb-1.5 pl-1">
+                <label className="block text-[11px] font-bold tracking-wider text-stone-400 uppercase">
+                  Admin Access Key
+                </label>
+                <span className="text-[9px] font-semibold text-stone-400 bg-stone-100 px-1.5 py-0.5 rounded">
+                  Secondary Layer
+                </span>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400" />
+                <input
+                  id="login-accesskey"
+                  type="text"
+                  value={accessKey}
+                  onChange={(e) => setAccessKey(e.target.value)}
+                  placeholder="Leave blank if disabled"
+                  className="w-full bg-stone-50 border border-stone-200/80 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-800/10 focus:border-stone-800 transition-all text-stone-800 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Login Submit Button */}
+            <button
+              id="login-submit-btn"
+              type="submit"
+              disabled={loading}
+              className="w-full bg-stone-900 hover:bg-stone-800 text-amber-50 rounded-2xl py-3.5 font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-75 cursor-pointer mt-6"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-100" />
+                  Authenticating Session...
+                </>
+              ) : (
+                'Access Admin Dashboard'
+              )}
+            </button>
+          </form>
         </div>
       </motion.div>
     </div>

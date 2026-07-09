@@ -129,6 +129,22 @@ app.post('/api/admin/login', (req: Request, res: Response) => {
   }
 });
 
+// Bypass login endpoint for direct/passwordless admin access
+app.post('/api/admin/bypass', (req: Request, res: Response) => {
+  try {
+    const admin = db.getAdminUser();
+    // Generate JWT (expires in 12 hours)
+    const token = jwt.sign({ username: admin.username }, JWT_SECRET, { expiresIn: '12h' });
+    res.json({
+      token,
+      username: admin.username,
+      expiresIn: 12 * 60 * 60 // 12 hours in seconds
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: 'Bypass login failed: ' + error.message });
+  }
+});
+
 // ==========================================
 // ADMIN PROTECTED API ROUTES
 // ==========================================

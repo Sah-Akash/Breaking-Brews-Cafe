@@ -18,21 +18,36 @@ export default function App() {
   const [token, setToken] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
+  const autoLoginAdmin = async () => {
+    try {
+      const res = await fetch('/api/admin/bypass', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        handleLoginSuccess(data.token, data.username);
+      }
+    } catch (err) {
+      console.error('Failed to auto-login admin:', err);
+    }
+  };
+
   // Synchronize with URL paths on boot
   useEffect(() => {
     const path = window.location.pathname;
-    if (path === '/admin' || path.startsWith('/hidden-admin-panel-73af91')) {
+    const isAdminView = path === '/admin' || path.startsWith('/hidden-admin-panel-73af91');
+    if (isAdminView) {
       setView('admin');
     } else {
       setView('customer');
     }
 
-    // Load active session from local storage
+    // Load active session from local storage or auto-login
     const storedToken = localStorage.getItem('qr_menu_admin_token');
     const storedUser = localStorage.getItem('qr_menu_admin_user');
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUsername(storedUser);
+    } else if (isAdminView) {
+      autoLoginAdmin();
     }
 
     // Fetch initial menu details
@@ -40,8 +55,13 @@ export default function App() {
 
     // Listen to browser back/forward button navigations
     const handlePopState = () => {
-      if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/hidden-admin-panel-73af91')) {
+      const currentPath = window.location.pathname;
+      const currentlyAdmin = currentPath === '/admin' || currentPath.startsWith('/hidden-admin-panel-73af91');
+      if (currentlyAdmin) {
         setView('admin');
+        if (!localStorage.getItem('qr_menu_admin_token')) {
+          autoLoginAdmin();
+        }
       } else {
         setView('customer');
       }
@@ -67,6 +87,9 @@ export default function App() {
   const navigateTo = (newView: 'customer' | 'admin') => {
     setView(newView);
     window.history.pushState(null, '', newView === 'admin' ? '/admin' : '/');
+    if (newView === 'admin' && !token) {
+      autoLoginAdmin();
+    }
   };
 
   const handleLoginSuccess = (userToken: string, name: string) => {
