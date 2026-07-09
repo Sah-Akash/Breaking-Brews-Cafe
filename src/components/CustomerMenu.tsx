@@ -20,6 +20,25 @@ export default function CustomerMenu({ settings, categories, menuItems, onNaviga
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [vegOnly, setVegOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [logoTapCount, setLogoTapCount] = useState(0);
+  const [lastTapTime, setLastTapTime] = useState(0);
+
+  const handleLogoClick = () => {
+    const now = Date.now();
+    if (now - lastTapTime > 2000) {
+      // Reset if too slow (more than 2 seconds)
+      setLogoTapCount(1);
+    } else {
+      const nextCount = logoTapCount + 1;
+      if (nextCount >= 5) {
+        onNavigateToAdmin();
+        setLogoTapCount(0);
+      } else {
+        setLogoTapCount(nextCount);
+      }
+    }
+    setLastTapTime(now);
+  };
 
   // Filter items: must be available
   const availableItems = menuItems.filter(item => item.isAvailable);
@@ -43,11 +62,15 @@ export default function CustomerMenu({ settings, categories, menuItems, onNaviga
               <img 
                 src={settings.logoUrl} 
                 alt={settings.restaurantName} 
-                className="w-10 h-10 rounded-full object-cover border border-amber-100 shadow-sm"
+                className="w-10 h-10 rounded-full object-cover border border-amber-100 shadow-sm cursor-pointer active:scale-95 transition-transform select-none"
                 referrerPolicy="no-referrer"
+                onClick={handleLogoClick}
               />
             ) : (
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-800 font-bold border border-amber-100 text-lg">
+              <div 
+                onClick={handleLogoClick}
+                className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-800 font-bold border border-amber-100 text-lg cursor-pointer active:scale-95 transition-transform select-none"
+              >
                 {settings.restaurantName[0]}
               </div>
             )}
@@ -62,13 +85,7 @@ export default function CustomerMenu({ settings, categories, menuItems, onNaviga
             </div>
           </div>
 
-          <button 
-            id="admin-nav-btn"
-            onClick={onNavigateToAdmin}
-            className="text-[11px] font-medium tracking-wider text-stone-400 hover:text-stone-700 bg-stone-50 border border-stone-200/60 rounded-full px-3 py-1 transition-all"
-          >
-            ADMIN
-          </button>
+
         </div>
       </header>
 
