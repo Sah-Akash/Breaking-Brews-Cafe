@@ -362,7 +362,7 @@ export default function CustomerMenu({ settings, categories, menuItems, onNaviga
           </div>
 
           <div className="mt-4 text-[9px] tracking-wider text-stone-400/80">
-            Powered by QR Digital Menu Platform • 2026
+            Powered by SAH LABS • 2026
           </div>
         </footer>
 
