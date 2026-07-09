@@ -1,0 +1,6 @@
+{
+  "name": "QR Digital Menu Platform",
+  "description": "An AI-powered QR Digital Menu platform for restaurants and cafes. Upload menu images or PDFs to automatically extract items, categories, and prices using Gemini AI, with a mobile-first premium customer view and a rich admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
